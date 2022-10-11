@@ -23,10 +23,8 @@ def predict_label(img_path):
     pr = model.predict(x)
     prt = (pr > 0.4).astype(np.uint8)
     prt = np.squeeze(prt)
-    return "Image_Path"
+    return prt
 
-
-# pr = predict_label("Face.jpeg")
 
 # routes
 
@@ -43,6 +41,7 @@ def get_hours():
         img_path = "static/"+img.filename
         img.save(img_path)
         p = predict_label(img_path)
+        plt.imsave(img_path, p)
 
     return render_template("index.html", prediction=p, img_path=img_path)
 
