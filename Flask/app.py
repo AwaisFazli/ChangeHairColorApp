@@ -14,24 +14,43 @@ model = load_model("model.h5")
 model.make_predict_function()
 
 
-def predict_label(img_path):
-    test_pic = cv2.imread(img_path)
-    test = resize(test_pic, (224, 224, 3), mode="reflect")
-    pred = resize(test_pic, (224, 224, 1), mode="reflect")
-    x = tf.keras.utils.img_to_array(pred)
+def predict_segmetation(input_image):
+    img_train = cv2.imread(input_image)
+    img_train = cv2.cvtColor(img_train, cv2.COLOR_BGR2RGB)
+    img_train = resize(img_train, (224, 224, 3), mode="reflect")
+    plt.imsave("static/img.jpg",
+               np.squeeze((img_train*255).astype(np.uint8)))
+    img_train = resize(img_train, (224, 224, 1), mode="reflect")
+
+    x = tf.keras.utils.img_to_array(img_train)
     x = np.expand_dims(x, axis=0)
     pr = model.predict(x)
     prt = (pr > 0.4).astype(np.uint8)
-    prt = np.squeeze(prt)
-    return prt
+    plt.imsave("static/mask.jpg", np.squeeze(prt),  cmap="gray")
+    plt.show()
+    return "han done he"
+
+
+def color_change():
+    img_file = "static/img.jpg"
+    mask_file = "static/mask.jpg"
+
+    img = cv2.imread(img_file, 1)
+    mask = cv2.imread(mask_file, 0)
+    contours, heirarchy = cv2.findContours(
+        mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    cv2.drawContours(img, contours, 1, (0, 0, 255), 1)
+    img = img[:, :, ::-1]
+    img[..., 2] = np.where(mask == 255, 255, img[..., 2])
+    plt.imsave("./templates/public/result.jpg", img)
 
 
 # routes
 
 
-@app.route('/', methods=['GET', 'POST'])
-def main():
-    return render_template("index.html")
+# @app.route('/', methods=['GET', 'POST'])
+# def main():
+#     return render_template("public/index.html")
 
 
 @app.route('/submit', methods=['GET', 'POST'])
@@ -40,10 +59,10 @@ def get_hours():
         img = request.files["my_image"]
         img_path = "static/"+img.filename
         img.save(img_path)
-        p = predict_label(img_path)
-        plt.imsave(img_path, p)
+        predict_segmetation(img_path)
+        color_change()
 
-    return render_template("index.html", prediction=p, img_path=img_path)
+    return render_template("public/index.html")
 
 
 if __name__ == '__main__':
