@@ -48,9 +48,9 @@ def color_change():
 # routes
 
 
-# @app.route('/', methods=['GET', 'POST'])
-# def main():
-#     return render_template("public/index.html")
+@app.route('/', methods=['GET', 'POST'])
+def main():
+    return "Backend Up"
 
 
 @app.route('/submit', methods=['GET', 'POST'])
